@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MovieApp</string>
+    <string name="API_KEY">api_key=c1d0d4700ff7be419e1741c8d5894f04</string>
+    <string name="POPULAR">popular</string>
+    <string name="TOP_RATED">top_rated</string>
+    <string name="FAVOURITE">favourite</string>
+    <string name="PHOTO_URL">http://image.tmdb.org/t/p/w185/</string>
+    <string name="MOVIE_URL">https://api.themoviedb.org/3/movie/</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
