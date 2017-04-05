@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp70">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="5"
+        android:padding="@dimen/margin_10"
+        android:src="@drawable/iconplay"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/tv_movie_video"
+        android:padding="@dimen/margin_10"
+        android:layout_marginTop="@dimen/margin_10"
+        tools:text="glgrmlkgr"
+        android:layout_weight="1"
+        />
+
+</LinearLayout>

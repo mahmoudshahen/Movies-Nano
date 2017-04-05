@@ -20,6 +20,9 @@
         app:showAsAction="ifRoom"
         android:icon="@android:drawable/stat_notify_sync_noanim"
         >
-
     </item>
+    <item
+        android:id="@+id/setting"
+        android:title="Setting"
+        ></item>
 </menu>

@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,13 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     List<Movie> movies;
     MoviesAdapter moviesAdapter;
     RecyclerView moviesRecyclerView;
+    private final String LIFECYCLE_MOVIE_RESULT = "result";
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,8 +56,11 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
         moviesRecyclerView = (RecyclerView)rootView.findViewById(R.id.rv_movie_recycler);
         moviesRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         moviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        if(isNetworkAvailable(getContext()))
+        if(savedInstanceState != null) {
+            movies = (List<Movie>) savedInstanceState.getSerializable(LIFECYCLE_MOVIE_RESULT);
+            SetMovieAdapter();
+        }
+        else if(isNetworkAvailable(getContext()))
             GetMovieQuarry(getContext());
         else
         Toast.makeText(getContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
@@ -60,8 +71,12 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     @Override
     public void onResume() {
         super.onResume();
+    }
 
-
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(LIFECYCLE_MOVIE_RESULT, (Serializable) movies);
     }
 
     @Override
@@ -78,20 +93,21 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
             GetMovieQuarry(getContext());
             return true;
         }
-        if(id == R.id.top)
-        {
+        if(id == R.id.top) {
             TOP_POP = getString(R.string.TOP_RATED);
             GetMovieQuarry(getContext());
             return true;
         }
-        if(id == R.id.fav)
-        {
+        if(id == R.id.fav) {
             Toast.makeText(getContext(), "Not implemented Yet", Toast.LENGTH_SHORT).show();
             return true;
         }
-        if(id == R.id.refresh)
-        {
+        if(id == R.id.refresh) {
             GetMovieQuarry(getContext());
+            return true;
+        }
+        if(id == R.id.setting) {
+            startActivity(new Intent(getContext(), SettingsActivity.class));
             return true;
         }
 
@@ -116,8 +132,7 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
                         if (result != null && result.has("results")) {
                             JsonArray jsonArray = result.get("results").getAsJsonArray();
 
-                            for(int i=0 ; i<jsonArray.size() ; i++)
-                            {
+                            for(int i=0 ; i<jsonArray.size() ; i++) {
                                 Movie movie = new Movie();
                                 movie.setId(jsonArray.get(i).getAsJsonObject().get("id").getAsString());
                                 movie.setOriginalTitle(jsonArray.get(i).getAsJsonObject().get("original_title").getAsString());
@@ -127,10 +142,8 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
                                 movie.setVoteAverage(jsonArray.get(i).getAsJsonObject().get("vote_average").getAsString());
                                 movies.add(movie);
                             }
-
                         }
                         SetMovieAdapter();
-
                     }
                 });
     }
