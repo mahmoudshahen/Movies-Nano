@@ -23,7 +23,12 @@
         <activity
             android:name=".DetailActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity" android:parentActivityName=".MainActivity"></activity>
+        
+        <provider
+            android:authorities="com.example.mahmoudshahen.movieapp"
+            android:name=".MovieContentProvider"
+            android:exported="false"></provider>
     </application>
 
 </manifest>

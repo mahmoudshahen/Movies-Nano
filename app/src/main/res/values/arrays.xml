@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="movie_option_labels">
+        <item>@string/movie_label_popular</item>
+        <item>@string/movie_label_top_rated</item>
+        <item>@string/movie_label_favourite</item>
+    </array>
+
+    <array name="movie_option_values">
+        <item>@string/POPULAR</item>
+        <item>@string/TOP_RATED</item>
+        <item>@string/FAVOURITE</item>
+    </array>
+
+</resources>

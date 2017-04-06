@@ -105,6 +105,14 @@
                             android:textStyle="bold"
                             />
                     </LinearLayout>
+                    <Button
+                        android:layout_width="@dimen/dp120"
+                        android:layout_height="@dimen/dp50"
+                        android:layout_marginTop="@dimen/margin_20"
+                        android:text="Mark As favourite"
+                        android:background="@color/zatony"
+                        android:id="@+id/b_favourite"
+                        />
 
                 </LinearLayout>
             </LinearLayout>

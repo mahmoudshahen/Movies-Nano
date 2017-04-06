@@ -1,13 +1,18 @@
 package com.example.mahmoudshahen.movieapp;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceFragment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -30,7 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainFragment extends Fragment implements MoviesAdapter.ListItemClickListener {
+public class MainFragment extends Fragment implements MoviesAdapter.ListItemClickListener,
+                                SharedPreferences.OnSharedPreferenceChangeListener {
 
     String MOVIE_URL ;
     String TOP_POP;
@@ -38,7 +44,7 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     MoviesAdapter moviesAdapter;
     RecyclerView moviesRecyclerView;
     private final String LIFECYCLE_MOVIE_RESULT = "result";
-
+    SharedPreferences sharedPreferences;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,22 +54,28 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
         setHasOptionsMenu(true);
-        MOVIE_URL = getString(R.string.MOVIE_URL);
-        TOP_POP = getString(R.string.POPULAR);
-
         moviesRecyclerView = (RecyclerView)rootView.findViewById(R.id.rv_movie_recycler);
         moviesRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         moviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        MOVIE_URL = getString(R.string.MOVIE_URL);
+        String stored = sharedPreferences.getString(getString(R.string.key_list), getString(R.string.POPULAR));
+        if(stored.equals(getString(R.string.FAVOURITE))) {
+            fillListFromDataBase();
+        }
+        else
+            TOP_POP = stored;
+
         if(savedInstanceState != null) {
             movies = (List<Movie>) savedInstanceState.getSerializable(LIFECYCLE_MOVIE_RESULT);
             SetMovieAdapter();
         }
-        else if(isNetworkAvailable(getContext()))
+        else if(isNetworkAvailable(getContext()) && !stored.equals(getString(R.string.FAVOURITE)))
             GetMovieQuarry(getContext());
-        else
-        Toast.makeText(getContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
+        else if(!isNetworkAvailable(getContext()))
+            Toast.makeText(getContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
 
         return rootView;
     }
@@ -88,29 +100,19 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.pop) {
-            TOP_POP = getString(R.string.POPULAR);
-            GetMovieQuarry(getContext());
-            return true;
-        }
-        if(id == R.id.top) {
-            TOP_POP = getString(R.string.TOP_RATED);
-            GetMovieQuarry(getContext());
-            return true;
-        }
-        if(id == R.id.fav) {
-            Toast.makeText(getContext(), "Not implemented Yet", Toast.LENGTH_SHORT).show();
-            return true;
-        }
+
         if(id == R.id.refresh) {
-            GetMovieQuarry(getContext());
+            if(sharedPreferences.getString(getString(R.string.key_list), getString(R.string.POPULAR)).equals(getString(R.string.FAVOURITE))) {
+                fillListFromDataBase();
+            }
+            else
+                GetMovieQuarry(getContext());
             return true;
         }
         if(id == R.id.setting) {
             startActivity(new Intent(getContext(), SettingsActivity.class));
             return true;
         }
-
 
         return super.onOptionsItemSelected(item);
     }
@@ -162,5 +164,45 @@ public class MainFragment extends Fragment implements MoviesAdapter.ListItemClic
     }
     public boolean isNetworkAvailable(final Context context) {
         return ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo() != null;
+    }
+    public void fillListFromDataBase() {
+        Cursor cursor = getContext().getContentResolver().query(MovieContract.MovieTable.CONTENT_URI, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+        movies = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            Movie movie = new Movie();
+            movie.setId(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_ID)));
+            movie.setVoteAverage(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_RATING)));
+            movie.setReleaseDate(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_RELEASEDATE)));
+            movie.setPosterPath(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_IMAGE)));
+            movie.setOverview(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_OVERVIEW)));
+            movie.setOriginalTitle(cursor.getString(cursor.getColumnIndex(MovieContract.MovieTable.COLUMN_NAME_ORIGINALTITLE)));
+            movies.add(movie);
+        }
+        SetMovieAdapter();
+        moviesAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        Log.v("shared", sharedPreferences.getString(s, "dff"));
+        if(sharedPreferences.getString(s, "null").equals(getString(R.string.FAVOURITE))) {
+            fillListFromDataBase();
+        }
+        else if(sharedPreferences.getString(s, "null").equals(getString(R.string.POPULAR))) {
+            TOP_POP = getString(R.string.POPULAR);
+            GetMovieQuarry(getContext());
+        }
+        else {
+            TOP_POP = getString(R.string.TOP_RATED);
+            GetMovieQuarry(getContext());
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
     }
 }

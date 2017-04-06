@@ -2,8 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ListPreference
-        android:title="new setting"
-        android:key="list"
+        android:defaultValue="@string/POPULAR"
+        android:entries="@array/movie_option_labels"
+        android:entryValues="@array/movie_option_values"
+        android:title="@string/kind"
+        android:key="@string/key_list"
         >
 
     </ListPreference>
